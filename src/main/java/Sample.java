@@ -97,7 +97,7 @@ class SampleListener extends Listener {
                     if(FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)){
                         System.out.println("schneider :)");
                     } else {
-                        System.out.println("iliasova davai snova");
+                        System.out.println("iliasova davai snova for schneider");
                     }
                 }
             }

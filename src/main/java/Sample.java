@@ -87,7 +87,16 @@ class SampleListener extends Listener {
 //                                + ", end: " + bone.nextJoint()
 //                                + ", direction: " + bone.direction());
                          }
-                    float scalar = v1.get(0) * v2.get(0)+ v1.get(1) * v2.get(1) + v1.get(2) * v2.get(2);
+                     if(FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)){
+                        System.out.println("kalodec :D");
+                    } else {
+                        System.out.println("iliasova davai snova");
+                    }
+                    if(FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)){
+                        System.out.println("schneider :)");
+                    } else {
+                        System.out.println("iliasova davai snova for schneider");
+                    }
                     System.out.println("crouch level == " + crouchLevel(v1,v2));
                     System.out.println("finger straight" + fingerStraightLevel(finger));
                 }

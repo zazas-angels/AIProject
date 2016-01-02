@@ -89,8 +89,13 @@ class SampleListener extends Listener {
                     }
                     float scalar = v1.get(0) * v2.get(0)+ v1.get(1) * v2.get(1) + v1.get(2) * v2.get(2);
                     System.out.println("scalar multiply == " + scalar);
-                    if(thumbAndIndexFingersMakeCircle(frame)){
-                        System.out.println("we got the jazz");
+                    if(FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)){
+                        System.out.println("kalodec :D");
+                    } else {
+                        System.out.println("iliasova davai snova");
+                    }
+                    if(FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)){
+                        System.out.println("schneider :)");
                     } else {
                         System.out.println("iliasova davai snova");
                     }
@@ -169,34 +174,7 @@ class SampleListener extends Listener {
         }
     }
 
-    public boolean thumbAndIndexFingersMakeCircle(Frame frame){
-        if(frame == null) return false;
-        Finger thumbFinger = getFinger(frame, Finger.Type.TYPE_THUMB);
-        Finger indexFinger = getFinger(frame, Finger.Type.TYPE_INDEX);
-        return doTwoFingersMakeCircle(thumbFinger, indexFinger);
-    }
-
-    private Finger getFinger(Frame frame, Finger.Type type) {
-        if(frame == null || frame.hands().isEmpty() || type == null) return null;
-        FingerList fingers = frame.fingers();
-        for (Finger finger : fingers) {
-            if(finger.type() == type)
-                return finger;
-        }
-        return null;
-    }
-
-    private double distanceBetweenTwoPoints(Vector a, Vector b){
-        return Math.abs(Math.sqrt(Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2) + Math.pow(a.getZ() - b.getZ(), 2)));
-    }
-
-    private boolean doTwoFingersMakeCircle(Finger first, Finger second){
-        if(first == null || second == null) return false;
-        double distanceBetweenLastBones = distanceBetweenTwoPoints(first.bone(Bone.Type.TYPE_DISTAL).center(), first.bone(Bone.Type.TYPE_INTERMEDIATE).center());
-        double distanceBetweenFingerEdges = distanceBetweenTwoPoints(first.bone(Bone.Type.TYPE_DISTAL).center(), second.bone(Bone.Type.TYPE_DISTAL).center());
-        return distanceBetweenFingerEdges <= distanceBetweenLastBones;
-    }
-}
+   }
 
 class Sample {
     public static void main(String[] args) {

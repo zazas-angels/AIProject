@@ -8,6 +8,8 @@
 
 import java.io.IOException;
 import java.lang.Math;
+import java.util.ArrayList;
+
 import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.State;
 
@@ -33,208 +35,42 @@ class SampleListener extends Listener {
         System.out.println("Exited");
     }
 
+
+    public boolean fillFeatures(Frame frame, ArrayList<Integer> features){
+        if( frame.hands().count()!=1)
+            return false;
+        features.add(boolToInt( FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)));
+        features.add(boolToInt( FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)));
+
+        for(Hand hand : frame.hands()) {
+            if (hand.fingers().count()!=5){
+                return false;
+            }
+            features.add(FeatureEvaluator.countCroachedFingers(hand,features));
+
+        }
+
+        return true;
+
+    }
+
+    private Integer boolToInt(boolean b) {
+        if(b)
+            return 1;
+        return 0;
+    }
+
     public void onFrame(Controller controller) {
         // Get the most recent frame and report some basic information
         Frame frame = controller.frame();
-//        System.out.println("Frame id: " + frame.id()
-//                         + ", timestamp: " + frame.timestamp()
-//                         + ", hands: " + frame.hands().count()
-//                         + ", fingers: " + frame.fingers().count()
-//                         + ", tools: " + frame.tools().count()
-//                         + ", gestures " + frame.gestures().count());
-
-        //Get hands..
-        for(Hand hand : frame.hands()) {
-            String handType = hand.isLeft() ? "Left hand" : "Right hand";
-//            System.out.println("  " + handType + ", id: " + hand.id()
-//                             + ", palm position: " + hand.palmPosition());
-
-            // Get the hand's normal vector and direction
-            Vector normal = hand.palmNormal();
-            Vector direction = hand.direction();
-
-            // Calculate the hand's pitch, roll, and yaw angles
-//            System.out.println("  pitch: " + Math.toDegrees(direction.pitch()) + " degrees, "
-//                             + "roll: " + Math.toDegrees(normal.roll()) + " degrees, "
-//                             + "yaw: " + Math.toDegrees(direction.yaw()) + " degrees");
-
-            // Get arm bone
-            Arm arm = hand.arm();
-//            System.out.println("  Arm direction: " + arm.direction()
-//                             + ", wrist position: " + arm.wristPosition()
-//                             + ", elbow position: " + arm.elbowPosition());
-
-            // Get fingers
-            for (Finger finger : hand.fingers()) {
-                if(finger.type() == Finger.Type.TYPE_INDEX) {
-//                    System.out.println("    " + finger.type() + ", id: " + finger.id()
-//                            + ", length: " + finger.length()
-//                            + "mm, width: " + finger.width() + "mm");
-
-                    Vector v1 = new Vector();
-                    Vector v2 = new Vector();
-                    //Get Bones
-                    for (Bone.Type boneType : Bone.Type.values()) {
-                        Bone bone = finger.bone(boneType);
-                        if(bone.type() == Bone.Type.TYPE_METACARPAL){
-                            v1= bone.direction();
-                        }
-                        if(bone.type() == Bone.Type.TYPE_DISTAL){
-                            v2= bone.direction();
-                        }
-//                        System.out.println("      " + bone.type()
-//                                + " bone, start: " + bone.prevJoint()
-//                                + ", end: " + bone.nextJoint()
-//                                + ", direction: " + bone.direction());
-                         }
-                     if(FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)){
-                        System.out.println("kalodec :D");
-                    } else {
-                        System.out.println("iliasova davai snova");
-                    }
-                    if(FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)){
-                        System.out.println("schneider :)");
-                    } else {
-                        System.out.println("iliasova davai snova for schneider");
-                    }
-                    System.out.println("crouch level == " + crouchLevel(v1,v2));
-                    System.out.println("finger straight" + fingerStraightLevel(finger));
-                }
-            }
-            System.out.println("count crouched fingers: " +countCroachedFingers(hand));
-
+        ArrayList<Integer> features = new ArrayList<Integer>();
+        if(fillFeatures(frame,features)){
+            System.out.println(features);
         }
 
-        // Get tools
-        for(Tool tool : frame.tools()) {
-            System.out.println("  Tool id: " + tool.id()
-                             + ", position: " + tool.tipPosition()
-                             + ", direction: " + tool.direction());
-        }
 
-        GestureList gestures = frame.gestures();
-        for (int i = 0; i < gestures.count(); i++) {
-            Gesture gesture = gestures.get(i);
-
-            switch (gesture.type()) {
-                case TYPE_CIRCLE:
-                    CircleGesture circle = new CircleGesture(gesture);
-
-                    // Calculate clock direction using the angle between circle normal and pointable
-                    String clockwiseness;
-                    if (circle.pointable().direction().angleTo(circle.normal()) <= Math.PI/2) {
-                        // Clockwise if angle is less than 90 degrees
-                        clockwiseness = "clockwise";
-                    } else {
-                        clockwiseness = "counterclockwise";
-                    }
-
-                    // Calculate angle swept since last frame
-                    double sweptAngle = 0;
-                    if (circle.state() != State.STATE_START) {
-                        CircleGesture previousUpdate = new CircleGesture(controller.frame(1).gesture(circle.id()));
-                        sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * Math.PI;
-                    }
-
-                    System.out.println("  Circle id: " + circle.id()
-                               + ", " + circle.state()
-                               + ", progress: " + circle.progress()
-                               + ", radius: " + circle.radius()
-                               + ", angle: " + Math.toDegrees(sweptAngle)
-                               + ", " + clockwiseness);
-                    break;
-                case TYPE_SWIPE:
-                    SwipeGesture swipe = new SwipeGesture(gesture);
-                    System.out.println("  Swipe id: " + swipe.id()
-                               + ", " + swipe.state()
-                               + ", position: " + swipe.position()
-                               + ", direction: " + swipe.direction()
-                               + ", speed: " + swipe.speed());
-                    break;
-                case TYPE_SCREEN_TAP:
-                    ScreenTapGesture screenTap = new ScreenTapGesture(gesture);
-                    System.out.println("  Screen Tap id: " + screenTap.id()
-                               + ", " + screenTap.state()
-                               + ", position: " + screenTap.position()
-                               + ", direction: " + screenTap.direction());
-                    break;
-                case TYPE_KEY_TAP:
-                    KeyTapGesture keyTap = new KeyTapGesture(gesture);
-                    System.out.println("  Key Tap id: " + keyTap.id()
-                               + ", " + keyTap.state()
-                               + ", position: " + keyTap.position()
-                               + ", direction: " + keyTap.direction());
-                    break;
-                default:
-                    System.out.println("Unknown gesture type.");
-                    break;
-            }
-        }
-
-        if (!frame.hands().isEmpty() || !gestures.isEmpty()) {
-            System.out.println();
-        }
     }
-    int countCroachedFingers(Hand hand){
-        int count = 0;
-        for (Finger finger : hand.fingers()) {
-               Vector v1 = new Vector();
-                Vector v2 = new Vector();
-                //Get Bones
-                for (Bone.Type boneType : Bone.Type.values()) {
-                    Bone bone = finger.bone(boneType);
-                    if(finger.type() == Finger.Type.TYPE_THUMB){
-                        if(bone.type()==Bone.Type.TYPE_PROXIMAL){
-                            v1= bone.direction();
-                        }
-                    }else{
-                        if(bone.type() == Bone.Type.TYPE_METACARPAL){
-                            v1= bone.direction();
-                        }
-                    }
 
-                    if(bone.type() == Bone.Type.TYPE_DISTAL){
-                        v2= bone.direction();
-                    }
-                }
-               if( crouchLevel(v1,v2)>5){
-                   count++;
-               }
-
-
-        }
-        return count;
-    }
-    int fingerStraightLevel(Finger finger){
-        //Get Bones
-        Vector proximal= new Vector();
-        Vector intermidiate =  new Vector();
-        Vector distal= new Vector();
-        for (Bone.Type boneType : Bone.Type.values()) {
-            Bone bone = finger.bone(boneType);
-            if(bone.type() == Bone.Type.TYPE_PROXIMAL){
-                proximal= bone.direction();
-            }
-            if(bone.type() == Bone.Type.TYPE_INTERMEDIATE){
-                intermidiate= bone.direction();
-            }
-            if(bone.type() == Bone.Type.TYPE_DISTAL){
-                distal= bone.direction();
-            }
-
-        }
-
-        return crouchLevel(proximal,intermidiate)+crouchLevel(intermidiate,distal);
-    }
-    int crouchLevel(Vector v1, Vector v2) {
-        v1 = v1.normalized();
-        v2 = v2.normalized();
-        float res = v1.get(0) * v2.get(0)+ v1.get(1) * v2.get(1) + v1.get(2) * v2.get(2);
-        res+=1;
-        res/=2;
-        res *=10;
-        return  10-(int)res;
-    }
 }
 
 class Sample {

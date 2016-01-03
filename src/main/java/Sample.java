@@ -6,9 +6,12 @@
 * between Leap Motion and you, your company or other organization.             *
 \******************************************************************************/
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.State;
@@ -39,8 +42,8 @@ class SampleListener extends Listener {
     public boolean fillFeatures(Frame frame, ArrayList<Integer> features){
         if( frame.hands().count()!=1)
             return false;
-        features.add(boolToInt( FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)));
-        features.add(boolToInt( FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)));
+        features.add(boolToInt(FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)));
+        features.add(boolToInt(FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)));
 
         for(Hand hand : frame.hands()) {
             if (hand.fingers().count()!=5){
@@ -64,8 +67,6 @@ class SampleListener extends Listener {
         if(fillFeatures(frame,features)){
             System.out.println(features);
         }
-
-
     }
 
 }

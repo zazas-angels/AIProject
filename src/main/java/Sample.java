@@ -47,11 +47,8 @@ class SampleListener extends Listener {
                 return false;
             }
             features.add(FeatureEvaluator.countCroachedFingers(hand,features));
-
         }
-
         return true;
-
     }
 
     private Integer boolToInt(boolean b) {

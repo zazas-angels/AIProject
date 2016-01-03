@@ -31,7 +31,7 @@ public class FeatureEvaluator {
         if(first == null || second == null) return false;
         double distanceBetweenLastBones = distanceBetweenTwoPoints(first.bone(Bone.Type.TYPE_DISTAL).center(), first.bone(Bone.Type.TYPE_INTERMEDIATE).center());
         double distanceBetweenFingerEdges = distanceBetweenTwoPoints(first.bone(Bone.Type.TYPE_DISTAL).center(), second.bone(Bone.Type.TYPE_DISTAL).center());
-        return distanceBetweenFingerEdges <= distanceBetweenLastBones;
+        return distanceBetweenFingerEdges <= distanceBetweenLastBones * 1.5;
     }
 
     public static boolean thumbMakesCircleWithRingOrPinky(Frame frame){
@@ -39,10 +39,10 @@ public class FeatureEvaluator {
         boolean result = false;
         Finger thumbFinger = getFinger(frame, Finger.Type.TYPE_THUMB);
         Finger ringFinger = getFinger(frame, Finger.Type.TYPE_RING);
-        if(doTwoFingersMakeCircle(thumbFinger, ringFinger))
+        if(doTwoFingersMakeCircle(ringFinger, thumbFinger) || doTwoFingersMakeCircle(thumbFinger, ringFinger))
             return true;
         Finger pinkyFinger = getFinger(frame, Finger.Type.TYPE_PINKY);
-        return doTwoFingersMakeCircle(thumbFinger, pinkyFinger);
+        return doTwoFingersMakeCircle(thumbFinger, pinkyFinger) || doTwoFingersMakeCircle(pinkyFinger, thumbFinger);
     }
     public static int countCroachedFingers(Hand hand, ArrayList<Integer> features){
         int count = 0;

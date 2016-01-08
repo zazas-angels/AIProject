@@ -26,4 +26,8 @@ public class Action {
             weights.set(i,weights.get(i) - feature.get(i));
         }
     }
+    public ArrayList<Integer> getWeights(){
+        return weights;
+    }
+
 }

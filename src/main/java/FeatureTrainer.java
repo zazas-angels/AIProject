@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 /**
@@ -11,6 +12,9 @@ public class FeatureTrainer {
     private  Action well;
 
     public FeatureTrainer(){
+        scissores =  new Action(FileUtils.getWeights(HandFigureTypes.SCISSORS));
+        net =  new Action(FileUtils.getWeights(HandFigureTypes.NET));
+        well =  new Action(FileUtils.getWeights(HandFigureTypes.WELL));
 
     }
     public void train(ArrayList<Integer> feature,HandFigureTypes real){
@@ -47,6 +51,12 @@ public class FeatureTrainer {
                 return well;
         }
         return null;
+    }
+    public void doneTraining() throws FileNotFoundException {
+        FileUtils.setWeights(HandFigureTypes.SCISSORS,scissores.getWeights());
+        FileUtils.setWeights(HandFigureTypes.NET,net.getWeights());
+        FileUtils.setWeights(HandFigureTypes.WELL,well.getWeights());
+
     }
 
 }

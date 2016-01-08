@@ -1,24 +1,28 @@
-/******************************************************************************\
-* Copyright (C) 2012-2013 Leap Motion, Inc. All rights reserved.               *
-* Leap Motion proprietary and confidential. Not for distribution.              *
-* Use subject to the terms of the Leap Motion SDK Agreement available at       *
-* https://developer.leapmotion.com/sdk_agreement, or another agreement         *
-* between Leap Motion and you, your company or other organization.             *
-\******************************************************************************/
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.Math;
-import java.util.ArrayList;
-import java.util.Scanner;
+/******************************************************************************
+ * \
+ * Copyright (C) 2012-2013 Leap Motion, Inc. All rights reserved.               *
+ * Leap Motion proprietary and confidential. Not for distribution.              *
+ * Use subject to the terms of the Leap Motion SDK Agreement available at       *
+ * https://developer.leapmotion.com/sdk_agreement, or another agreement         *
+ * between Leap Motion and you, your company or other organization.             *
+ * \
+ ******************************************************************************/
 
 import com.leapmotion.leap.*;
-import com.leapmotion.leap.Gesture.State;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 class SampleListener extends Listener {
+    private FeatureTrainer featureTrainer;
+    private int countNet = 0;
+    private int countWell = 0;
+    private int countScissors = 0;
+    private boolean countingEnabled = false;
+
     public void onInit(Controller controller) {
         System.out.println("Initialized");
+        featureTrainer = new FeatureTrainer();
     }
 
     public void onConnect(Controller controller) {
@@ -32,6 +36,12 @@ class SampleListener extends Listener {
     public void onDisconnect(Controller controller) {
         //Note: not dispatched when running in a debugger.
         System.out.println("Disconnected");
+        try {
+            featureTrainer.doneTraining();
+            System.out.println("updated weights");
+        } catch (FileNotFoundException e) {
+            System.out.println("Can't update weights");
+        }
     }
 
     public void onExit(Controller controller) {
@@ -39,23 +49,23 @@ class SampleListener extends Listener {
     }
 
 
-    public boolean fillFeatures(Frame frame, ArrayList<Integer> features){
-        if( frame.hands().count()!=1)
+    public boolean fillFeatures(Frame frame, ArrayList<Integer> features) {
+        if (frame.hands().count() != 1)
             return false;
         features.add(boolToInt(FeatureEvaluator.thumbAndIndexFingersMakeCircle(frame)));
         features.add(boolToInt(FeatureEvaluator.thumbMakesCircleWithRingOrPinky(frame)));
 
-        for(Hand hand : frame.hands()) {
-            if (hand.fingers().count()!=5){
+        for (Hand hand : frame.hands()) {
+            if (hand.fingers().count() != 5) {
                 return false;
             }
-            features.add(FeatureEvaluator.countCroachedFingers(hand,features));
+            features.add(FeatureEvaluator.countCroachedFingers(hand, features));
         }
         return true;
     }
 
     private Integer boolToInt(boolean b) {
-        if(b)
+        if (b)
             return 1;
         return 0;
     }
@@ -64,31 +74,117 @@ class SampleListener extends Listener {
         // Get the most recent frame and report some basic information
         Frame frame = controller.frame();
         ArrayList<Integer> features = new ArrayList<Integer>();
-        if(fillFeatures(frame,features)){
-            System.out.println(features);
+        if (fillFeatures(frame, features)) {
+//            System.out.println(features);
+            features.add(0, 1);
+//            featureTrainer.train(features, HandFigureTypes.WELL);
+            HandFigureTypes type = featureTrainer.getResult(features);
+            if (countingEnabled) {
+                switch (type) {
+                    case NET:
+                        countNet++;
+                        break;
+                    case WELL:
+                        countWell++;
+                        break;
+                    case SCISSORS:
+                        countScissors++;
+                        break;
+                }
+            }
+//            System.out.println(type);
         }
+
+
     }
 
+    public void resetCurrentFigures() {
+        countNet = 0;
+        countWell = 0;
+        countScissors = 0;
+    }
+
+    public HandFigureTypes getCurrentFigure() {
+        HandFigureTypes type = HandFigureTypes.NET;
+        int best = countNet;
+        if (best < countWell) {
+            type = HandFigureTypes.WELL;
+            best = countWell;
+        }
+        if (best < countScissors) {
+            type = HandFigureTypes.SCISSORS;
+        }
+        return type;
+    }
+
+    public void disableCounting() {
+        countingEnabled = false;
+    }
+
+    public void enableCounting() {
+        countingEnabled = true;
+    }
 }
 
 class Sample {
+    private static final int SECONDS_TO_CHOOSE_FIGURE = 2;
+    private static final int WAIT_TIME = 2;
+    private static final int TIME_TO_WAIT_BEFORE_MOVE = 1;
+
     public static void main(String[] args) {
+        GUI gui = new GUI();
         SampleListener listener = new SampleListener();
         Controller controller = new Controller();
 
         // Have the sample listener receive events from the controller
         controller.addListener(listener);
 
-        // Keep this process running until Enter is pressed
-        System.out.println("Press Enter to quit...");
-        try {
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
+        while (true) {
+            try {
+                Thread.sleep(WAIT_TIME * 1000);
+                gui.prepareForMove();
+                Thread.sleep(WAIT_TIME * 1000);
+                System.out.println("your move.. choose your move");
+                gui.takeYourHandIn();
+                System.out.println("take hand in");
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            listener.resetCurrentFigures();
+            listener.enableCounting();
+            try {
+                Thread.sleep(SECONDS_TO_CHOOSE_FIGURE * 1000);
+                gui.takeYourHandOut();
+                System.out.println("take hand out");
+                listener.disableCounting();
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            gui.chosen(listener.getCurrentFigure());
+            System.out.println("you have chosen  " + listener.getCurrentFigure());
+
+            try {
+                Thread.sleep(WAIT_TIME
+                        * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
-        // Remove the sample listener when done
-        controller.removeListener(listener);
+
+        // Keep this process running until Enter is pressed
+//        System.out.println("Press Enter to quit...");
+//        try {
+//            System.in.read();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        // Remove the sample listener when done
+//        controller.removeListener(listener);
     }
 
 

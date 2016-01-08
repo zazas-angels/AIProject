@@ -29,11 +29,11 @@ public class FileUtilsTest {
         netWeights.add(1);
         netWeights.add(3);
         netWeights.add(2);
-        FileUtils.setWeights(HandFigureTypes.NET, netWeights);
-        netWeights = FileUtils.getWeights(HandFigureTypes.NET);
-        assertNotNull(netWeights);
-        assertTrue(1 == netWeights.get(0));
-        assertTrue(3 == netWeights.get(1));
-        assertTrue(2 == netWeights.get(2));
+//        FileUtils.setWeights(HandFigureTypes.NET, netWeights);
+//        netWeights = FileUtils.getWeights(HandFigureTypes.NET);
+//        assertNotNull(netWeights);
+//        assertTrue(1 == netWeights.get(0));
+//        assertTrue(3 == netWeights.get(1));
+//        assertTrue(2 == netWeights.get(2));
     }
 }

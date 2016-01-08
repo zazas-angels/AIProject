@@ -18,9 +18,17 @@ public class FileUtils {
         return list;
     }
 
+    public static Scanner getReaderFromTrainingDate(HandFigureTypes type){
+        try {
+            return new Scanner(new File("D:\\dev\\AIProject\\src\\main\\resources\\trainingData"+ type));
+        } catch (Exception e){
+            System.out.println("can't open file");
+        }
+        return null;
+    }
 
     public static void setWeights(HandFigureTypes type, ArrayList<Integer> list) throws FileNotFoundException {
-        PrintWriter writer = new PrintWriter(new File("D:\\dev\\AIProject\\src\\main\\resources\\"+ type.name()));
+        PrintWriter writer = new PrintWriter(new File("D:\\dev\\AIProject\\src\\main\\resources\\"+ type));
         for (Integer integer : list) {
             writer.print(integer);
             writer.print(" ");
@@ -28,4 +36,7 @@ public class FileUtils {
         writer.close();
     }
 
+    public static PrintWriter getWriterInTrainingFile(HandFigureTypes figure) throws FileNotFoundException {
+        return new PrintWriter(new File("D:\\dev\\AIProject\\src\\main\\resources\\trainingData" + figure));
+    }
 }

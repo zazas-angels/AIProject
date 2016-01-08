@@ -31,7 +31,7 @@ public class FeatureEvaluator {
         if(first == null || second == null) return false;
         double distanceBetweenLastBones = distanceBetweenTwoPoints(first.bone(Bone.Type.TYPE_DISTAL).center(), first.bone(Bone.Type.TYPE_INTERMEDIATE).center());
         double distanceBetweenFingerEdges = distanceBetweenTwoPoints(first.bone(Bone.Type.TYPE_DISTAL).center(), second.bone(Bone.Type.TYPE_DISTAL).center());
-        return distanceBetweenFingerEdges <= distanceBetweenLastBones * 1.5;
+        return distanceBetweenFingerEdges <= distanceBetweenLastBones * 2;
     }
 
     public static boolean thumbMakesCircleWithRingOrPinky(Frame frame){
@@ -71,7 +71,7 @@ public class FeatureEvaluator {
                 count++;
             }
             features.add(croachLevelRes);
-            features.add(FeatureEvaluator.fingerStraightLevel(finger));
+//            features.add(FeatureEvaluator.fingerStraightLevel(finger));
 
 
             //System.out.println("crouch level == " + FeatureEvaluator.crouchLevel(v1, v2));

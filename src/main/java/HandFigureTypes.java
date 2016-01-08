@@ -1,15 +1,15 @@
 public enum HandFigureTypes {
-    SCISSORS{
+    SCISSORS {
         public String toString() {
             return "scissors";
         }
     },
-    NET{
+    NET {
         public String toString() {
             return "net";
         }
     },
-    WELL{
+    WELL {
         public String toString() {
             return "well";
         }

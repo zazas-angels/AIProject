@@ -60,9 +60,6 @@ class SampleListener extends Listener {
         return 0;
     }
 
-    private  ArrayList<Integer> weightsScissores = new ArrayList<Integer>();
-    private  ArrayList<Integer> weightsWell = new ArrayList<Integer>();
-
     public void onFrame(Controller controller) {
         // Get the most recent frame and report some basic information
         Frame frame = controller.frame();

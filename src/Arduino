@@ -1,0 +1,103 @@
+/* Sweep
+ by BARRAGAN <http://barraganstudio.com>
+ This example code is in the public domain.
+
+ modified 8 Nov 2013
+ by Scott Fitzgerald
+ http://www.arduino.cc/en/Tutorial/Sweep
+*/
+/*
+ * 1=49
+ * 1 1 1 1
+ * 2 1 1 0 bade
+ * 3 1 0 1
+ * 4 1 0 0
+ * 5 0 1 1 cha
+ * 6 0 1 0
+ * 7 0 0 1
+ * 8 0 0 0 makrateli
+ */
+#include <Servo.h>
+
+Servo myservo1;  // create servo object to control a servo
+Servo myservo2;// twelve servo objects can be created on most boards
+Servo myservo3;
+int pos = 0;    // variable to store the servo position
+
+void setup() {
+  myservo1.attach(9); 
+  myservo2.attach(10);
+  myservo3.attach(11);// attaches the servo on pin 9 to the servo object
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
+  pinMode(12, OUTPUT);
+  digitalWrite(12, HIGH);
+  Serial.begin(9600); 
+}
+
+const int MAX= 90;
+const int MIN = 5;
+void writeToServos(int a, int b, int c){
+      myservo1.write(a);              // tell servo to go to position in variable 'pos'
+    
+     myservo2.write(b);              // tell servo to go to position in variable 'pos'
+   
+    myservo3.write(c); 
+}
+void loop() {
+
+   if (Serial.available() > 0) {
+                // read the incoming byte:
+                int res = Serial.read();
+
+                switch(res){
+                  case 49:{
+                    writeToServos(MAX,MAX,MAX);
+                    break;
+                  }
+                   case 50:{
+                    writeToServos(MAX,MAX,MIN);
+                    break;
+                  }
+                   case 51:{
+                    writeToServos(MAX,MIN,MAX);
+                    break;
+                  }
+                   case 52:{
+                    writeToServos(MAX,MIN,MIN);
+                    break;
+                  }
+                   case 53:{
+                    writeToServos(MIN,MAX,MAX);
+                    break;
+                  }
+                   case 54:{
+                    writeToServos(MIN,MAX,MIN);
+                    break;
+                  }
+                   case 55:{
+                    writeToServos(MIN,MIN,MAX);
+                    break;
+                  }
+                   case 56:{
+                    writeToServos(MIN,MIN,MIN);
+                    break;
+                  }
+                  
+                }
+
+        }
+//  for (pos = 0; pos <= 120; pos += 1) { // goes from 0 degrees to 180 degrees
+//    // in steps of 1 degree
+//             // tell servo to go to position in variable 'pos'
+//   delay(15);                       // waits 15ms for the servo to reach the position
+//  }
+//  for (pos = 120; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+//   myservo1.write(pos);              // tell servo to go to position in variable 'pos'
+//    
+//     myservo2.write(pos);              // tell servo to go to position in variable 'pos'
+//   
+//    myservo3.write(pos);           // tell servo to go to position in variable 'pos'
+//    delay(15);                       // waits 15ms for the servo to reach the position
+//  }
+}

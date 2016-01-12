@@ -9,6 +9,8 @@
  ******************************************************************************/
 
 import com.leapmotion.leap.*;
+import jssc.SerialPort;
+import jssc.SerialPortException;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -131,10 +133,21 @@ class Sample {
     private static final int WAIT_TIME = 2;
     private static final int TIME_TO_WAIT_BEFORE_MOVE = 1;
 
-    public static void main(String[] args) {
-        GUI gui = new GUI();
+    public static void main(String[] args) throws SerialPortException {
+        GUITest guiTest = new GUITest();
         SampleListener listener = new SampleListener();
         Controller controller = new Controller();
+
+        SerialPort serialPort = new SerialPort("COM3");
+        try {
+            serialPort.openPort();//Open serial port
+            serialPort.setParams(SerialPort.BAUDRATE_9600,
+                    SerialPort.DATABITS_8,
+                    SerialPort.STOPBITS_1,
+                    SerialPort.PARITY_NONE);//Set params. Also you can set params by this string: serialPort.setParams(9600, 8, 1, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Have the sample listener receive events from the controller
         controller.addListener(listener);
@@ -142,10 +155,10 @@ class Sample {
         while (true) {
             try {
                 Thread.sleep(WAIT_TIME * 1000);
-                gui.prepareForMove();
+                guiTest.prepareForMove();
                 Thread.sleep(WAIT_TIME * 1000);
                 System.out.println("your move.. choose your move");
-                gui.takeYourHandIn();
+                guiTest.takeYourHandIn();
                 System.out.println("take hand in");
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -155,7 +168,7 @@ class Sample {
             listener.enableCounting();
             try {
                 Thread.sleep(SECONDS_TO_CHOOSE_FIGURE * 1000);
-                gui.takeYourHandOut();
+                guiTest.takeYourHandOut();
                 System.out.println("take hand out");
                 listener.disableCounting();
                 Thread.sleep(1000);
@@ -163,12 +176,23 @@ class Sample {
                 e.printStackTrace();
             }
 
-            gui.chosen(listener.getCurrentFigure());
+            guiTest.chosen(listener.getCurrentFigure());
             System.out.println("you have chosen  " + listener.getCurrentFigure());
+            switch (listener.getCurrentFigure()){
+                case NET:
+                    serialPort.writeBytes("2\n".getBytes());
+                    break;
+                case WELL:
+                    serialPort.writeBytes("5\n".getBytes());
+                    break;
+                case SCISSORS:
+                    serialPort.writeBytes("8\n".getBytes());
+                    break;
+            }
+
 
             try {
-                Thread.sleep(WAIT_TIME
-                        * 1000);
+                Thread.sleep(WAIT_TIME * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -3,13 +3,13 @@ import com.leapmotion.leap.Frame;
 import javax.swing.*;
 import java.awt.*;
 
-public class GUI {
+public class GUITest {
     private JFrame frame;
     private JPanel panel;
     private JLabel label;
 
 
-    public GUI(){
+    public GUITest(){
         frame = new JFrame("JEIRANI");
         frame.setSize(800, 800);
 //        frame.setLayout(new FlowLayout());

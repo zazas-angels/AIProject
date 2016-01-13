@@ -12,8 +12,12 @@ import com.leapmotion.leap.*;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 class SampleListener extends Listener {
     private FeatureTrainer featureTrainer;
@@ -126,18 +130,54 @@ class SampleListener extends Listener {
     public void enableCounting() {
         countingEnabled = true;
     }
+
+    public boolean detectedFigure() {
+        return (countScissors + countWell + countNet) > 40;
+    }
 }
 
 class Sample {
     private static final int SECONDS_TO_CHOOSE_FIGURE = 2;
     private static final int WAIT_TIME = 2;
     private static final int TIME_TO_WAIT_BEFORE_MOVE = 1;
+    private static int netQuantity = 1;
+    private static int scissorsQuantity = 1;
+    private static int wellQuantity = 1;
 
-    public static void main(String[] args) throws SerialPortException {
-        GUITest guiTest = new GUITest();
+    public static HandFigureTypes oppositeFigure(HandFigureTypes figureType) {
+        switch (figureType) {
+            case NET:
+                return HandFigureTypes.SCISSORS;
+            case WELL:
+                return HandFigureTypes.NET;
+            case SCISSORS:
+                return HandFigureTypes.WELL;
+        }
+        return null;
+    }
+
+    static Random random = new Random();
+
+    public static HandFigureTypes getOppositeFigure() {
+        double sum = netQuantity + scissorsQuantity + wellQuantity;
+        double netPercentage = netQuantity / sum;
+        double scissorsPercentage = scissorsQuantity / sum;
+        double rand = random.nextDouble();
+
+        if (rand < netPercentage) {
+            return oppositeFigure(HandFigureTypes.NET);
+        } else if (rand < netPercentage + scissorsPercentage) {
+            return oppositeFigure(HandFigureTypes.SCISSORS);
+        } else return oppositeFigure(HandFigureTypes.WELL);
+    }
+
+
+    public static void main(String[] args) throws SerialPortException, FileNotFoundException {
+        GUI gui = new GUI();
         SampleListener listener = new SampleListener();
         Controller controller = new Controller();
-
+        readQuantities();
+        getOppositeFigure();
         SerialPort serialPort = new SerialPort("COM3");
         try {
             serialPort.openPort();//Open serial port
@@ -146,19 +186,22 @@ class Sample {
                     SerialPort.STOPBITS_1,
                     SerialPort.PARITY_NONE);//Set params. Also you can set params by this string: serialPort.setParams(9600, 8, 1, 0);
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
 
         // Have the sample listener receive events from the controller
         controller.addListener(listener);
 
         while (true) {
+            System.out.println(netQuantity);
+            System.out.println(scissorsQuantity);
+            System.out.println(wellQuantity);
             try {
                 Thread.sleep(WAIT_TIME * 1000);
-                guiTest.prepareForMove();
-                Thread.sleep(WAIT_TIME * 1000);
+                gui.prepareForMove();
+                Thread.sleep(TIME_TO_WAIT_BEFORE_MOVE * 1000);
                 System.out.println("your move.. choose your move");
-                guiTest.takeYourHandIn();
+                gui.takeYourHandIn();
                 System.out.println("take hand in");
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -166,49 +209,76 @@ class Sample {
             }
             listener.resetCurrentFigures();
             listener.enableCounting();
+            HandFigureTypes type = null;
             try {
-                Thread.sleep(SECONDS_TO_CHOOSE_FIGURE * 1000);
-                guiTest.takeYourHandOut();
+                Thread.sleep((SECONDS_TO_CHOOSE_FIGURE -1) * 1000);
+                type = getOppositeFigure();
+                switch(type) {
+                    case NET:
+                        netQuantity++;
+                        serialPort.writeBytes("2\n".getBytes());
+                        break;
+                    case WELL:
+                        wellQuantity++;
+                        serialPort.writeBytes("5\n".getBytes());
+                        break;
+                    case SCISSORS:
+                        scissorsQuantity++;
+                        serialPort.writeBytes("8\n".getBytes());
+                        break;
+                }
+                Thread.sleep(1000);
+                gui.takeYourHandOut();
                 System.out.println("take hand out");
                 listener.disableCounting();
-                Thread.sleep(1000);
+//                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            guiTest.chosen(listener.getCurrentFigure());
-            System.out.println("you have chosen  " + listener.getCurrentFigure());
-            switch (listener.getCurrentFigure()){
-                case NET:
-                    serialPort.writeBytes("2\n".getBytes());
-                    break;
-                case WELL:
-                    serialPort.writeBytes("5\n".getBytes());
-                    break;
-                case SCISSORS:
-                    serialPort.writeBytes("8\n".getBytes());
-                    break;
+            if (listener.detectedFigure()) {
+                gui.chosen(listener.getCurrentFigure(), type);
+                updateQuantities();
+            } else {
+                gui.noneChosen();
             }
-
-
             try {
-                Thread.sleep(WAIT_TIME * 1000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
 
-        // Keep this process running until Enter is pressed
-//        System.out.println("Press Enter to quit...");
-//        try {
-//            System.in.read();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // Remove the sample listener when done
+        // Remove the sample listener when done
 //        controller.removeListener(listener);
+    }
+
+    private static void updateQuantities() throws FileNotFoundException {
+        PrintWriter writer = new PrintWriter(new File("D:\\dev\\AIProject\\src\\main\\resources\\figureTypesQuantity"));
+        writer.print(netQuantity);
+        writer.print(" ");
+        writer.print(scissorsQuantity);
+        writer.print(" ");
+        writer.print(wellQuantity);
+        writer.print(" ");
+        writer.close();
+
+    }
+
+    private static void readQuantities() {
+        try {
+            Scanner scan = new Scanner(new File("D:\\dev\\AIProject\\src\\main\\resources\\figureTypesQuantity"));
+            netQuantity = scan.nextInt();
+            scissorsQuantity = scan.nextInt();
+            wellQuantity = scan.nextInt();
+            if (netQuantity == 0)
+                netQuantity++;
+            if (scissorsQuantity == 0)
+                scissorsQuantity++;
+            if (wellQuantity == 0)
+                wellQuantity++;
+        } catch (Exception e) {
+        }
     }
 
 

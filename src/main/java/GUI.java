@@ -18,11 +18,7 @@ public class GUI {
     JLabel playerPointsLabel;
     JLabel winnerLabel;
 
-    public GUI(){
-        init();
-    }
-
-    private void init() {
+    public void init() {
         computerPoints = 0;
         playerPoints = 0;
         frame = new JFrame("JEIRANI");
@@ -40,7 +36,6 @@ public class GUI {
         frame.add(getCenterPanel(), BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
-
     }
 
     private JPanel getNorthPanel() {
@@ -67,16 +62,16 @@ public class GUI {
         infoLabel.setText("<html><font color='#CCC054'>prepare for move...</font></html>");
     }
 
-    public void chosen(HandFigureTypes currentFigure, HandFigureTypes opposite) {
-        int winner = HandFigureTypes.getWinner(currentFigure, opposite);
+    public Player chosen(HandFigureTypes currentFigure, HandFigureTypes opposite) {
+        Player winner = HandFigureTypes.getWinner(currentFigure, opposite);
         infoLabel.setText("");
         addImages(currentFigure, opposite);
         switch (winner){
-            case 1:
+            case HUMAN:
                 playerPoints++;
                 onPlayerWin();
                 break;
-            case -1:
+            case COMPUTER:
                 computerPoints++;
                 onComputerWin();
                 break;
@@ -87,6 +82,7 @@ public class GUI {
         }
         removeImages();
         infoLabel.setText("<html>Detected: <font color='#5D88CF'> "+currentFigure +"</font> opposite " +opposite+"</html>");
+        return winner;
     }
 
     private void timeout(int second) {
@@ -176,5 +172,51 @@ public class GUI {
 
         centerPanel = panel;
         return panel;
+    }
+
+    public void preGame(){
+//Custom button text
+        Object[] options = {"start game"};
+        int n = JOptionPane.showOptionDialog(frame,
+                "play JAIran with frodo, press button to start game...",
+                "JAIran",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                options[0]);
+        //Custom button text
+//        JDialog dialog = new JDialog();
+//        dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    }
+
+    public void playAgain(){
+        Object[] options = {"start game"};
+        JOptionPane.showOptionDialog(frame,
+                "do you want to play again?",
+                "JAIran",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
+    }
+
+    public void resetPoints() {
+        computerPoints = 0;
+        playerPoints = 0;
+        computerPointsLabel.setText("       0    COMPUTER");
+//        computerPointsLabel.setFont(new Font(computerPointsLabel.getName(), Font.PLAIN, 30));
+        playerPointsLabel.setText("PLAYER    0         :");
+    }
+
+    public void setWinner() {
+        if(computerPoints > playerPoints){
+            computerPointsLabel.setText("Frodo wins!!!");
+            playerPointsLabel.setText("");
+        } else {
+            computerPointsLabel.setText("Congratulation, You are winner!");
+            playerPointsLabel.setText("");
+        }
     }
 }

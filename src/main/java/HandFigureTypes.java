@@ -17,21 +17,21 @@ public enum HandFigureTypes {
 
 
 
-    public static int getWinner(HandFigureTypes playerFigure, HandFigureTypes computerFigure){
-        if(playerFigure.equals(computerFigure)) return 0;
+    public static Player getWinner(HandFigureTypes playerFigure, HandFigureTypes computerFigure){
+        if(playerFigure.equals(computerFigure)) return Player.NONE;
         switch (playerFigure){
             case SCISSORS:
                 if(computerFigure.equals(HandFigureTypes.NET))
-                    return 1;
-                return -1;
+                    return Player.HUMAN;
+                return Player.COMPUTER;
             case NET:
                 if(computerFigure.equals(HandFigureTypes.WELL))
-                    return 1;
-                return -1;
+                    return Player.HUMAN;
+                return Player.COMPUTER;
             default:
                 if(computerFigure.equals(HandFigureTypes.SCISSORS))
-                    return 1;
-                return -1;
+                    return Player.HUMAN;
+                return Player.COMPUTER;
         }
     }
 }

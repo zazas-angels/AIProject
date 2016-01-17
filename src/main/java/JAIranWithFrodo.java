@@ -136,10 +136,11 @@ class SampleListener extends Listener {
     }
 }
 
-class Sample {
+class JAIranWithFrodo {
     private static final int SECONDS_TO_CHOOSE_FIGURE = 2;
     private static final int WAIT_TIME = 2;
     private static final int TIME_TO_WAIT_BEFORE_MOVE = 1;
+    private static final int MAX_POINT = 3;
     private static int netQuantity = 1;
     private static int scissorsQuantity = 1;
     private static int wellQuantity = 1;
@@ -191,8 +192,26 @@ class Sample {
 
         // Have the sample listener receive events from the controller
         controller.addListener(listener);
-
+        gui.preGame();
+        gui.init();
+        System.out.println("emzari11");
         while (true) {
+            gui.resetPoints();
+            playGame(gui, listener, serialPort);
+            gui.setWinner();
+            gui.playAgain();
+        }
+
+
+        // Remove the sample listener when done
+//        controller.removeListener(listener);
+    }
+
+    private static void playGame(GUI gui, SampleListener listener, SerialPort serialPort) {
+        int computerPoints = 0;
+        int playerPoints = 0;
+
+        while (computerPoints < MAX_POINT && playerPoints < MAX_POINT) {
             System.out.println(netQuantity);
             System.out.println(scissorsQuantity);
             System.out.println(wellQuantity);
@@ -211,20 +230,32 @@ class Sample {
             listener.enableCounting();
             HandFigureTypes type = null;
             try {
-                Thread.sleep((SECONDS_TO_CHOOSE_FIGURE -1) * 1000);
+                Thread.sleep((SECONDS_TO_CHOOSE_FIGURE - 1) * 1000);
                 type = getOppositeFigure();
-                switch(type) {
+                switch (type) {
                     case NET:
                         netQuantity++;
-                        serialPort.writeBytes("2\n".getBytes());
+                        try {
+                            serialPort.writeBytes("2\n".getBytes());
+                        } catch (SerialPortException e) {
+                            e.printStackTrace();
+                        }
                         break;
                     case WELL:
                         wellQuantity++;
-                        serialPort.writeBytes("5\n".getBytes());
+                        try {
+                            serialPort.writeBytes("5\n".getBytes());
+                        } catch (SerialPortException e) {
+                            e.printStackTrace();
+                        }
                         break;
                     case SCISSORS:
                         scissorsQuantity++;
-                        serialPort.writeBytes("8\n".getBytes());
+                        try {
+                            serialPort.writeBytes("8\n".getBytes());
+                        } catch (SerialPortException e) {
+                            e.printStackTrace();
+                        }
                         break;
                 }
                 Thread.sleep(1000);
@@ -236,8 +267,20 @@ class Sample {
                 e.printStackTrace();
             }
             if (listener.detectedFigure()) {
-                gui.chosen(listener.getCurrentFigure(), type);
-                updateQuantities();
+                Player winner = gui.chosen(listener.getCurrentFigure(), type);
+                switch (winner){
+                    case COMPUTER:
+                        computerPoints++;
+                        break;
+                    case HUMAN:
+                        playerPoints++;
+                        break;
+                }
+                try {
+                    updateQuantities();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             } else {
                 gui.noneChosen();
             }
@@ -247,10 +290,6 @@ class Sample {
                 e.printStackTrace();
             }
         }
-
-
-        // Remove the sample listener when done
-//        controller.removeListener(listener);
     }
 
     private static void updateQuantities() throws FileNotFoundException {
